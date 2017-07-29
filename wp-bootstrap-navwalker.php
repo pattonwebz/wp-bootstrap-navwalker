@@ -65,6 +65,28 @@ if ( ! class_exists( 'WP_Bootstrap_Navwalker' ) ) {
 			$value = '';
 			$class_names = $value;
 			$classes = empty( $item->classes ) ? array() : (array) $item->classes;
+			// Loop through the array and pick out any special classes that need
+			// to be added to an element other than the main <li>.
+			$extra_link_classes = array();
+			$icon_class_string = '';
+			foreach ( $classes as $key => $class ) {
+				// test if this is a disabled link.
+				if ( 'disabled' === $class ) {
+					$extra_link_classes[] = 'disabled';
+					unset( $classes[ $key ] );
+				}
+				// test for icon classes - Supports Font Awesome and Glyphicons.
+				if ( 'fa' === $class || 'fa-' === substr( $class, 0, 3 ) ) {
+					// Because of the abiguity of just 'fa' at the start both
+					// 'fa' & 'fa-' are tested for with Font Awesome icons.
+					$icon_class_string .= $class . ' ';
+					unset( $classes[ $key ] );
+				} elseif ( 'glyphicons' === substr( $class, 0, 10 ) ) {
+					// This should be a glyphicon icon class.
+					$icon_class_string .= $class . ' ';
+					unset( $classes[ $key ] );
+				}
+			}
 			$classes[] = 'menu-item-' . $item->ID;
 			$class_names = join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args ) );
 			if ( $args->has_children ) {
@@ -96,6 +118,22 @@ if ( ! class_exists( 'WP_Bootstrap_Navwalker' ) ) {
 			} else {
 				$atts['href'] = ! empty( $item->url ) ? $item->url : '';
 			}
+			// Loop through the array of extra link classes plucked from the
+			// parent <li>s classes array.
+			if ( ! empty( $extra_link_classes ) ) {
+				foreach ( $extra_link_classes as $link_class ) {
+					if ( ! empty( $link_class ) ) {
+						// update $atts with the extra class link.
+						$atts['class'] .= ' ' . esc_attr( $link_class );
+
+						// if the modification is a disabled class...
+						if ( 'disabled' === $link_class ) {
+							// then # the link so it doesn't point anywhere.
+							$atts['href'] = '#';
+						}
+					}
+				}
+			}
 			$atts = apply_filters( 'nav_menu_link_attributes', $atts, $item, $args );
 			$attributes = '';
 			foreach ( $atts as $attr => $value ) {
@@ -106,7 +144,14 @@ if ( ! class_exists( 'WP_Bootstrap_Navwalker' ) ) {
 			}
 			$item_output = $args->before;
 			$item_output .= '<a' . $attributes . '>';
-			$item_output .= $args->link_before . apply_filters( 'the_title', $item->title, $item->ID ) . $args->link_after;
+
+			// initiate empty icon var then if we have a string containing icon classes...
+			$icon_html = '';
+			if ( ! empty( $icon_class_string ) ) {
+				// append an <i> with the icon classes to what is output before links.
+				$icon_html = '<i class="' . esc_attr( $icon_class_string ) . '"></i> ';
+			}
+			$item_output .= $args->link_before . $icon_html . apply_filters( 'the_title', $item->title, $item->ID ) . $args->link_after;
 			$item_output .= ( $args->has_children && 0 === $depth ) ? ' <span class="caret"></span></a>' : '</a>';
 			$item_output .= $args->after;
 			$output .= apply_filters( 'walker_nav_menu_start_el', $item_output, $item, $depth, $args );

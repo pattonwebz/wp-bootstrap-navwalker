@@ -1,0 +1,8 @@
+title: wp-bootstrap-navwalker
+description: A custom Wordpress walker to implement the Twitter Bootstrap dropdown navigation using the Wordpress built in menu manager.
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-cayman
+
+gems:
+  - jekyll-mentions

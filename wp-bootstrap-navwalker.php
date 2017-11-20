@@ -123,8 +123,13 @@ if ( ! class_exists( 'WP_Bootstrap_Navwalker' ) ) {
 			if ( ! empty( $extra_link_classes ) ) {
 				foreach ( $extra_link_classes as $link_class ) {
 					if ( ! empty( $link_class ) ) {
-						// update $atts with the extra class link.
-						$atts['class'] .= ' ' . esc_attr( $link_class );
+						// test if this key already exists and append if so,
+						// otherwise set it.
+						if ( array_key_exists( 'class', $atts ) ) {
+							$atts['class'] = ' ' . esc_attr( $link_class );
+						} else {
+							$atts['class'] = esc_attr( $link_class );
+						}
 
 						// if the modification is a disabled class...
 						if ( 'disabled' === $link_class ) {
